@@ -2,6 +2,8 @@ from algorithms.problems import SearchProblem
 import algorithms.utils as utils
 from world.game import Directions
 from algorithms.heuristics import nullHeuristic
+from algorithms.utils import Stack
+from algorithms.utils import PriorityQueue
 
 
 def tinyHouseSearch(problem: SearchProblem):
@@ -28,8 +30,44 @@ def depthFirstSearch(problem: SearchProblem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    # TODO: Add your code here
-    utils.raiseNotDefined()
+    frontera = Stack()
+    visitados = []
+    estado_ini = problem.getStartState()
+    encontro = False 
+    edge_from = {}
+    goal = None
+    lista_acciones = []
+    
+    frontera.push(estado_ini)
+    
+    if problem.isGoalState(estado_ini):
+            return []
+        
+    while not (frontera.isEmpty()) and not encontro: 
+        last = frontera.pop()
+        if last not in visitados:
+            if problem.isGoalState(last): 
+                encontro = True
+                goal = last
+                
+            sucesores = problem.getSuccessors(last)
+            visitados.append(last) 
+            
+            for estado, accion, costo in sucesores:
+                if estado not in visitados:
+                    frontera.push(estado)
+                    edge_from[estado] = (last, accion)
+            
+    if goal == None:
+        return []
+    
+    while goal != estado_ini:
+        padre, accion = edge_from[goal]
+        lista_acciones.append(accion)
+        goal = padre
+          
+    lista_acciones.reverse() 
+    return lista_acciones
 
 
 def breadthFirstSearch(problem: SearchProblem):
@@ -59,8 +97,47 @@ def uniformCostSearch(problem: SearchProblem):
     Search the node of least total cost first.
     """
 
-    # TODO: Add your code here
-    utils.raiseNotDefined()
+    frontera = PriorityQueue()
+    visitados = []
+    estado_ini = problem.getStartState()
+    lista_acciones = []
+    costo_a_nodo = {}
+    edge_from = {}
+    goal = None
+    encontro = False
+    
+    costo_a_nodo[estado_ini] = 0
+    frontera.push(estado_ini,0)
+    if problem.isGoalState(estado_ini):
+            return []
+        
+    while not frontera.isEmpty() and not encontro:
+        last = frontera.pop()
+        if last not in visitados:
+            if problem.isGoalState(last): 
+                encontro = True
+                goal = last
+                
+            visitados.append(last)    
+            sucesores = problem.getSuccessors(last)
+            
+            for estado, accion, costo in sucesores:
+                costo_acumulado = costo + costo_a_nodo[last]
+                if estado not in costo_a_nodo or costo_acumulado < costo_a_nodo[estado]:
+                    costo_a_nodo[estado] = costo_acumulado
+                    frontera.update(estado, costo_acumulado)
+                    edge_from[estado] = (last, accion)
+                    
+    if goal == None:
+        return []
+    
+    while goal != estado_ini:
+        padre, accion = edge_from[goal]
+        lista_acciones.append(accion)
+        goal = padre
+          
+    lista_acciones.reverse() 
+    return lista_acciones
 
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
